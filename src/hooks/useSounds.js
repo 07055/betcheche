@@ -126,25 +126,43 @@ const stopFlyingSound = () => {
 const playCrashSound = () => {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        const bufferSize = ctx.sampleRate * 1.2;
+        const time = ctx.currentTime;
+
+        // 1. Subtle Chime/Ting (Welcoming start)
+        const chime = ctx.createOscillator();
+        const chimeGain = ctx.createGain();
+        chime.type = 'sine';
+        chime.frequency.setValueAtTime(1200, time);
+        chimeGain.gain.setValueAtTime(0.08, time);
+        chimeGain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+        chime.connect(chimeGain);
+        chimeGain.connect(ctx.destination);
+        chime.start(time); chime.stop(time + 0.3);
+
+        // 2. Smooth "Flew Away" Whoosh
+        const bufferSize = ctx.sampleRate * 0.6;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
-            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 4);
         }
         const source = ctx.createBufferSource();
         source.buffer = buffer;
+
         const filter = ctx.createBiquadFilter();
         filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(100, ctx.currentTime);
-        filter.frequency.exponentialRampToValueAtTime(5000, ctx.currentTime + 0.6);
+        filter.frequency.setValueAtTime(800, time);
+        filter.frequency.exponentialRampToValueAtTime(4000, time + 0.4);
+        filter.Q.value = 0.5;
+
         const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.0);
+        gain.gain.setValueAtTime(0.2, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
+
         source.connect(filter);
         filter.connect(gain);
         gain.connect(ctx.destination);
-        source.start();
+        source.start(time);
     } catch (e) { }
 };
 
