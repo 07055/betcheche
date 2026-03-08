@@ -694,42 +694,25 @@
         font-size: 15vw;
     }
 
-    .side-menu {
-        width: 85%;
-        max-width: 300px;
+    .header-right {
+        gap: 6px;
     }
 
-    /* Existing rules from the original file, merged */
-    .controls-grid {
-        grid-template-columns: 1fr;
+    .settings-btn {
+        display: block !important;
+        color: #fff;
+        order: 2;
     }
 
-    .header-actions .hdr-btn:not(.sound-btn) {
-        display: none;
-    }
-
-    .history-item {
-        font-size: 11px;
-        padding: 3px 10px;
-    }
-
-    .nav-btn span.icon {
-        margin: 0;
-    }
-
-    .nav-btn {
-        padding: 6px 10px;
-        font-size: 0;
-        /* Hide text, keep icon */
-    }
-
-    .nav-btn span.icon {
-        font-size: 14px;
+    .user-avatar-small {
+        order: 1;
+        width: 28px;
+        height: 28px;
     }
 
     .balance-pill {
-        padding: 4px 12px;
-        font-size: 12px;
+        padding: 4px 8px;
+        font-size: 11px;
     }
 }
 

@@ -56,27 +56,33 @@ const stopFlyingSound = () => {
 const playCrashSound = () => {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
-        // Low rumble + noise
-        const bufferSize = ctx.sampleRate * 0.5;
+
+        // High-pass/Band-pass Noise (Whoosh)
+        const bufferSize = ctx.sampleRate * 0.8;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
-        for (let i = 0; i < bufferSize; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / bufferSize);
+        for (let i = 0; i < bufferSize; i++) {
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 2);
+        }
+
         const source = ctx.createBufferSource();
         source.buffer = buffer;
+
+        const filter = ctx.createBiquadFilter();
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(200, ctx.currentTime);
+        filter.frequency.exponentialRampToValueAtTime(3000, ctx.currentTime + 0.5);
+        filter.Q.value = 1;
+
         const gain = ctx.createGain();
         gain.gain.setValueAtTime(0.5, ctx.currentTime);
-        source.connect(gain);
-        gain.connect(ctx.destination);
-        source.start();
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.7);
 
-        const osc = ctx.createOscillator();
-        const g2 = ctx.createGain();
-        osc.connect(g2); g2.connect(ctx.destination);
-        osc.frequency.setValueAtTime(120, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.5);
-        g2.gain.setValueAtTime(0.4, ctx.currentTime);
-        g2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-        osc.start(); osc.stop(ctx.currentTime + 0.5);
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        source.start();
     } catch (e) { }
 };
 
