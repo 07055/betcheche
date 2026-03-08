@@ -258,3 +258,35 @@
     font-size: 11px;
     font-weight: 700;
 }
+
+@media (max-width: 768px) {
+    .bet-panel {
+        padding: 6px;
+    }
+
+    .bet-main-row {
+        gap: 6px;
+    }
+
+    .bet-input {
+        font-size: 16px;
+    }
+
+    .btn-circle {
+        width: 24px;
+        height: 24px;
+    }
+
+    .btn-label {
+        font-size: 14px;
+    }
+
+    .current-win {
+        font-size: 18px;
+    }
+
+    .preset-btn {
+        font-size: 9px;
+        padding: 3px;
+    }
+}

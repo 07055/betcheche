@@ -144,6 +144,12 @@
     padding: 0 4px 4px 4px;
 }
 
+@media (max-width: 992px) {
+    .game-content {
+        grid-template-columns: 240px 1fr;
+    }
+}
+
 /* ── MAIN ── */
 .game-main {
     grid-area: main;
@@ -314,21 +320,23 @@
 }
 
 .multiplier-crashed {
-    font-size: clamp(50px, 8vw, 88px);
+    font-size: clamp(40px, 12vw, 88px);
     font-weight: 900;
     color: #e11d48;
     margin: 0;
     letter-spacing: -2px;
     text-shadow: 0 0 40px rgba(225, 29, 72, 0.7);
+    text-align: center;
 }
 
 .crash-label {
-    font-size: 20px;
+    font-size: clamp(14px, 4vw, 20px);
     font-weight: 800;
     color: #e11d48;
     text-transform: uppercase;
     letter-spacing: 4px;
     margin-top: 4px;
+    text-align: center;
 }
 
 /* Explosion shards */
@@ -430,6 +438,16 @@
     grid-template-columns: 1fr 1fr;
     gap: 4px;
     flex-shrink: 0;
+    max-height: 250px;
+    /* Limit height on mobile to keep game screen visible */
+}
+
+@media (max-width: 768px) {
+    .controls-grid {
+        grid-template-columns: 1fr;
+        max-height: none;
+        overflow-y: auto;
+    }
 }
 
 /* ── SIDE MENU ── */
@@ -623,16 +641,65 @@
     margin-top: 16px;
 }
 
-/* ── MOBILE ── */
+/* ── MOBILE OPTIMIZATION ── */
 @media (max-width: 768px) {
+    .game-header {
+        height: 48px;
+        padding: 0 10px;
+    }
+
+    .logo-main span {
+        display: none;
+        /* Hide 'Aviator' text on small mobile, keep icon */
+    }
+
+    .header-center {
+        gap: 4px;
+    }
+
+    .nav-btn {
+        padding: 4px 10px;
+        font-size: 10px;
+    }
+
+    .nav-btn .icon {
+        font-size: 14px;
+    }
+
     .game-content {
+        grid-template-areas: "main";
         grid-template-columns: 1fr;
+        padding: 0;
     }
 
     .game-page>.game-content>aside {
         display: none;
     }
 
+    .game-screen {
+        border-radius: 0;
+        border: none;
+    }
+
+    .history-bar {
+        padding: 4px 8px;
+        height: 36px;
+    }
+
+    .multiplier-running {
+        font-size: 15vw;
+    }
+
+    .multiplier-crashed {
+        font-size: 15vw;
+    }
+
+    .side-menu {
+        width: 85%;
+        max-width: 300px;
+    }
+
+    /* Existing rules from the original file, merged */
     .controls-grid {
         grid-template-columns: 1fr;
     }
@@ -663,5 +730,21 @@
     .balance-pill {
         padding: 4px 12px;
         font-size: 12px;
+    }
+}
+
+/* Very Small Devices */
+@media (max-width: 360px) {
+    .balance-pill {
+        padding: 4px 8px;
+        font-size: 11px;
+        gap: 6px;
+    }
+
+    .balance-value {
+        max-width: 80px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 }
