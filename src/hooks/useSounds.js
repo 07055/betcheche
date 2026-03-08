@@ -127,42 +127,58 @@ const playCrashSound = () => {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const time = ctx.currentTime;
+        const duration = 0.8;
 
-        // 1. Subtle Chime/Ting (Welcoming start)
-        const chime = ctx.createOscillator();
-        const chimeGain = ctx.createGain();
-        chime.type = 'sine';
-        chime.frequency.setValueAtTime(1200, time);
-        chimeGain.gain.setValueAtTime(0.08, time);
-        chimeGain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
-        chime.connect(chimeGain);
-        chimeGain.connect(ctx.destination);
-        chime.start(time); chime.stop(time + 0.3);
+        // 1. Jet Engine Resonance (Doppler Sweep)
+        const osc = ctx.createOscillator();
+        const filter = ctx.createBiquadFilter();
+        const gain = ctx.createGain();
 
-        // 2. Smooth "Flew Away" Whoosh
-        const bufferSize = ctx.sampleRate * 0.6;
+        osc.type = 'sawtooth';
+        // Doppler Pitch: High as it approaches, drops as it passes
+        osc.frequency.setValueAtTime(300, time);
+        osc.frequency.exponentialRampToValueAtTime(800, time + 0.2);
+        osc.frequency.exponentialRampToValueAtTime(150, time + 0.6);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(2000, time);
+        filter.frequency.exponentialRampToValueAtTime(1000, time + duration);
+
+        gain.gain.setValueAtTime(0, time);
+        gain.gain.linearRampToValueAtTime(0.4, time + 0.2); // Swell
+        gain.gain.exponentialRampToValueAtTime(0.001, time + duration); // Fade
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        // 2. Air Friction/Turbulence (Noise)
+        const bufferSize = ctx.sampleRate * duration;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
-            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 4);
+            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 3);
         }
-        const source = ctx.createBufferSource();
-        source.buffer = buffer;
+        const noise = ctx.createBufferSource();
+        noise.buffer = buffer;
+        const noiseFilter = ctx.createBiquadFilter();
+        const noiseGain = ctx.createGain();
 
-        const filter = ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(800, time);
-        filter.frequency.exponentialRampToValueAtTime(4000, time + 0.4);
-        filter.Q.value = 0.5;
+        noiseFilter.type = 'bandpass';
+        noiseFilter.frequency.setValueAtTime(400, time);
+        noiseFilter.frequency.exponentialRampToValueAtTime(3000, time + 0.2);
+        noiseFilter.frequency.exponentialRampToValueAtTime(600, time + duration);
 
-        const gain = ctx.createGain();
-        gain.gain.setValueAtTime(0.2, time);
-        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
+        noiseGain.gain.setValueAtTime(0, time);
+        noiseGain.gain.linearRampToValueAtTime(0.3, time + 0.15);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, time + duration);
 
-        source.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-        source.start(time);
+        noise.connect(noiseFilter);
+        noiseFilter.connect(noiseGain);
+        noiseGain.connect(ctx.destination);
+
+        osc.start(time); osc.stop(time + duration);
+        noise.start(time);
     } catch (e) { }
 };
 
