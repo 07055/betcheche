@@ -127,59 +127,36 @@ const playCrashSound = () => {
     try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)();
         const time = ctx.currentTime;
-        const duration = 0.6; // Faster pass
+        const duration = 0.5;
 
-        // 1. Core Engine Scream (Doppler Sweep)
-        const osc = ctx.createOscillator();
-        const filter = ctx.createBiquadFilter();
-        const gain = ctx.createGain();
-
-        osc.type = 'sawtooth';
-        // High entry -> Sharp peak -> Low exit
-        osc.frequency.setValueAtTime(1200, time);
-        osc.frequency.exponentialRampToValueAtTime(1800, time + 0.1);
-        osc.frequency.exponentialRampToValueAtTime(100, time + 0.5);
-
-        filter.type = 'lowpass';
-        filter.frequency.setValueAtTime(3000, time);
-        filter.frequency.exponentialRampToValueAtTime(800, time + duration);
-
-        gain.gain.setValueAtTime(0, time);
-        gain.gain.linearRampToValueAtTime(0.5, time + 0.12); // Fast swell
-        gain.gain.exponentialRampToValueAtTime(0.001, time + duration); // Fast fade
-
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(ctx.destination);
-
-        // 2. Focused Air "Whoosh" (Resonant Noise)
+        // Simple White Noise Buffer
         const bufferSize = ctx.sampleRate * duration;
         const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
-            data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufferSize, 4);
+            data[i] = (Math.random() * 2 - 1);
         }
-        const noise = ctx.createBufferSource();
-        noise.buffer = buffer;
-        const noiseFilter = ctx.createBiquadFilter();
-        const noiseGain = ctx.createGain();
 
-        noiseFilter.type = 'bandpass';
-        noiseFilter.frequency.setValueAtTime(2500, time);
-        noiseFilter.frequency.exponentialRampToValueAtTime(3500, time + 0.1);
-        noiseFilter.frequency.exponentialRampToValueAtTime(200, time + duration);
-        noiseFilter.Q.value = 4; // High resonance for 'whistle'
+        const source = ctx.createBufferSource();
+        source.buffer = buffer;
 
-        noiseGain.gain.setValueAtTime(0, time);
-        noiseGain.gain.linearRampToValueAtTime(0.4, time + 0.12);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+        const filter = ctx.createBiquadFilter();
+        // Spribe-like: Airy bandpass that drops in pitch
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(2000, time);
+        filter.frequency.exponentialRampToValueAtTime(100, time + duration);
+        filter.Q.value = 1.2;
 
-        noise.connect(noiseFilter);
-        noiseFilter.connect(noiseGain);
-        noiseGain.connect(ctx.destination);
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(0, time);
+        gain.gain.linearRampToValueAtTime(0.4, time + 0.15); // Quick swell
+        gain.gain.exponentialRampToValueAtTime(0.001, time + duration); // Smooth fade out
 
-        osc.start(time); osc.stop(time + duration);
-        noise.start(time);
+        source.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+
+        source.start(time);
     } catch (e) { }
 };
 
