@@ -92,8 +92,8 @@ export default function GamePage() {
             <header className="game-header">
                 <div className="header-left">
                     <div className="logo-main">
-                        <PlaneSVG size={24} />
-                        <span>AVIATOR</span>
+                        <PlaneSVG size={28} />
+                        <span className="aviator-logo-text" style={{ fontSize: '1.5rem', marginLeft: '8px' }}>Aviator</span>
                     </div>
                 </div>
 

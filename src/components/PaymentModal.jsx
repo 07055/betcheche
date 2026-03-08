@@ -6,7 +6,7 @@ import { config } from '../config';
 
 export default function PaymentModal({ onClose }) {
     const [mode, setMode] = useState('deposit');
-    const [amount, setAmount] = useState(1000);
+    const [amount, setAmount] = useState(100);
     const [email, setEmail] = useState('');
     const [loading, setLoading] = useState(false);
     const { user } = useGameStore();
@@ -97,7 +97,7 @@ export default function PaymentModal({ onClose }) {
                     </div>
 
                     <div className="amount-presets">
-                        {[500, 1000, 2000, 5000].map(val => (
+                        {[50, 100, 500, 1000].map(val => (
                             <button key={val} onClick={() => setAmount(val)}>
                                 {currency === 'KES' ? 'K' : '$'}{val}
                             </button>
@@ -124,7 +124,7 @@ export default function PaymentModal({ onClose }) {
                             onSuccess={handlePaystackSuccessAction}
                             onClose={handlePaystackCloseAction}
                             onClick={() => setLoading(true)}
-                            disabled={!email.includes('@') || !email.includes('.') || loading}
+                            disabled={!email.includes('@') || !email.includes('.') || loading || amount < 10}
                         />
                     ) : (
                         <button

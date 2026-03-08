@@ -1,4 +1,12 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Yellowtail&display=swap');
+
+.aviator-logo-text {
+  font-family: 'Yellowtail', cursive;
+  color: var(--accent-red);
+  text-transform: none !important;
+  font-style: italic;
+  letter-spacing: 1px;
+}
 
 *,
 *::before,

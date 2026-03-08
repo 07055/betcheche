@@ -49,13 +49,15 @@ export default function AuthPage() {
             <div className="auth-card">
                 {/* Logo */}
                 <div className="auth-logo">
-                    <svg viewBox="0 0 60 40" width="52" height="35">
-                        <path d="M2,20 L55,2 L45,20 L55,38 Z" fill="#e11d48" />
-                        <path d="M2,20 L45,20 L40,32 Z" fill="#b91c1c" />
-                        <path d="M45,20 L55,2 L48,20 Z" fill="rgba(255,255,255,0.2)" />
-                    </svg>
-                    <h1 className="auth-title">AVIATOR</h1>
-                    <p className="auth-subtitle">The Crash Game</p>
+                    <div style={{ marginBottom: '10px' }}>
+                        <svg viewBox="0 0 120 80" width="60" height="40" fill="none">
+                            <path d="M10 40 L30 35 L100 35 L112 40 L100 45 L30 45 Z" fill="#e11d48" />
+                            <path d="M40 40 L90 25 L95 30 L45 45 Z" fill="#e11d48" opacity="0.8" />
+                            <path d="M75 37 L85 43 M85 37 L75 43" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                        </svg>
+                    </div>
+                    <h1 className="auth-title aviator-logo-text" style={{ fontSize: '3.5rem', margin: '0 0 -10px 0' }}>Aviator</h1>
+                    <p className="auth-subtitle" style={{ letterSpacing: '2px', fontWeight: '800', color: 'rgba(255,255,255,0.6)' }}>THE CRASH GAME</p>
                 </div>
 
                 {/* Tabs */}
