@@ -8,11 +8,16 @@ const fmt = (n, cur) => {
 };
 
 export default function BetPanel({ index, bet, gameState, multiplier, onPlaceBet, onCancelBet, onCashOut, onSetAmount, onSetAutoCashout }) {
-    const currency = useGameStore((s) => s.currency);
     const balance = useGameStore((s) => s.balance);
+    const demoBalance = useGameStore((s) => s.demoBalance);
+    const isDemoMode = useGameStore((s) => s.isDemoMode);
+    const currency = useGameStore((s) => s.currency);
+
+    const [activeTab, setActiveTab] = useState('bet'); // 'bet' or 'auto'
     const [localAuto, setLocalAuto] = useState(bet.autoCashoutAt);
 
-    const canBet = (gameState === 'WAITING' || gameState === 'RUNNING' || gameState === 'CRASHED') && !bet.isActive && !bet.isQueued && balance >= bet.amount;
+    const currentBalance = isDemoMode ? demoBalance : balance;
+    const canBet = (gameState === 'WAITING' || gameState === 'RUNNING' || gameState === 'CRASHED') && !bet.isActive && !bet.isQueued && currentBalance >= bet.amount;
     const isInGame = bet.isActive && !bet.isCashedOut;
     const currentWin = bet.amount * multiplier;
 
@@ -30,54 +35,84 @@ export default function BetPanel({ index, bet, gameState, multiplier, onPlaceBet
 
     return (
         <div className={`bet-panel ${isInGame ? 'active-panel' : ''} ${bet.isQueued ? 'queued-panel' : ''}`}>
-            <div className="panel-header">
-                <span className="panel-label">BET {index + 1}</span>
-                {isInGame && <span className="live-badge pulse">LIVE</span>}
-                {bet.isQueued && <span className="queued-badge">NEXT ROUND</span>}
-                {bet.isCashedOut && <span className="won-badge">✓ WON</span>}
-            </div>
-
-            {/* Amount controls */}
-            <div className="bet-controls-row">
-                <div className="bet-input-group">
-                    <button onClick={() => !bet.isActive && !bet.isQueued && onSetAmount(index, bet.amount - (currency === 'KES' ? 10 : 1))} className="btn-circle" disabled={bet.isActive || bet.isQueued}>−</button>
-                    <input
-                        type="number"
-                        value={bet.amount}
-                        onChange={e => !bet.isActive && !bet.isQueued && onSetAmount(index, Number(e.target.value))}
-                        className="bet-input"
-                        readOnly={bet.isActive || bet.isQueued}
-                    />
-                    <button onClick={() => !bet.isActive && !bet.isQueued && onSetAmount(index, bet.amount + (currency === 'KES' ? 10 : 1))} className="btn-circle" disabled={bet.isActive || bet.isQueued}>+</button>
-                </div>
-                <div className="bet-presets">
-                    {PRESETS.map(amt => (
-                        <button key={amt} onClick={() => !bet.isActive && !bet.isQueued && onSetAmount(index, amt)} className="preset-btn" disabled={bet.isActive || bet.isQueued}>{amt}</button>
-                    ))}
+            <div className="panel-header-tabs">
+                <div className="tabs-group">
+                    <button
+                        className={`tab-item ${activeTab === 'bet' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('bet')}
+                    >
+                        Bet
+                    </button>
+                    <button
+                        className={`tab-item ${activeTab === 'auto' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('auto')}
+                    >
+                        Auto
+                    </button>
                 </div>
             </div>
 
-            {/* Quick multiplier buttons */}
-            {!bet.isActive && !bet.isQueued && (
-                <div className="quick-row">
-                    <button onClick={() => onSetAmount(index, Math.max(10, Math.round(bet.amount / 2)))} className="quick-btn">÷2</button>
-                    <button onClick={() => onSetAmount(index, bet.amount * 2)} className="quick-btn">×2</button>
-                    <button onClick={() => onSetAmount(index, Math.floor(balance * 0.5))} className="quick-btn">½ Max</button>
-                    <button onClick={() => onSetAmount(index, Math.floor(balance))} className="quick-btn">Max</button>
-                </div>
-            )}
-
-            {/* Auto-cashout toggle */}
-            <div className="auto-cashout-row">
-                <label className="auto-label">
-                    <div className={`toggle-switch ${bet.autoCashout ? 'on' : ''}`} onClick={() => onSetAutoCashout(index, !bet.autoCashout, localAuto)}>
-                        <div className="toggle-thumb" />
+            {/* Amount controls and Bet buttons */}
+            <div className="bet-main-row">
+                <div className="bet-amount-col">
+                    <div className="bet-input-group">
+                        <button onClick={() => !bet.isActive && !bet.isQueued && onSetAmount(index, bet.amount - (currency === 'KES' ? 10 : 1))} className="btn-circle" disabled={bet.isActive || bet.isQueued}>−</button>
+                        <input
+                            type="number"
+                            value={bet.amount}
+                            onChange={e => !bet.isActive && !bet.isQueued && onSetAmount(index, Number(e.target.value))}
+                            className="bet-input"
+                            readOnly={bet.isActive || bet.isQueued}
+                        />
+                        <button onClick={() => !bet.isActive && !bet.isQueued && onSetAmount(index, bet.amount + (currency === 'KES' ? 10 : 1))} className="btn-circle" disabled={bet.isActive || bet.isQueued}>+</button>
                     </div>
-                    <span>Auto Cash Out</span>
-                </label>
-                {bet.autoCashout && (
-                    <div className="auto-input-group">
-                        <span>@</span>
+                    <div className="bet-presets">
+                        {PRESETS.map(amt => (
+                            <button key={amt} onClick={() => !bet.isActive && !bet.isQueued && onSetAmount(index, amt)} className="preset-btn" disabled={bet.isActive || bet.isQueued}>{amt}</button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="bet-action-col">
+                    {bet.isCashedOut ? (
+                        <div className="cashed-out-status">
+                            <span className="win-mult">{bet.cashoutValue.toFixed(2)}x</span>
+                            <span className="win-value">{fmt(bet.amount * bet.cashoutValue, currency)}</span>
+                        </div>
+                    ) : isInGame ? (
+                        <button onClick={() => onCashOut(index)} className="cashout-btn" disabled={gameState !== 'RUNNING'}>
+                            <span className="cashout-label">CASH OUT</span>
+                            <span className="current-win">{fmt(currentWin, currency)}</span>
+                        </button>
+                    ) : bet.isQueued ? (
+                        <button onClick={() => onCancelBet(index)} className="cancel-btn">
+                            CANCEL
+                        </button>
+                    ) : (
+                        <button
+                            onClick={() => onPlaceBet(index)}
+                            disabled={!canBet}
+                            className="bet-btn"
+                        >
+                            <span className="btn-label">BET</span>
+                            <span className="btn-val">{fmt(bet.amount, currency)}</span>
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Auto-cashout row (only in auto tab) */}
+            {activeTab === 'auto' && (
+                <div className="auto-settings-row">
+                    <div className="auto-cashout-toggle">
+                        <label className="auto-label">
+                            <div className={`toggle-switch ${bet.autoCashout ? 'on' : ''}`} onClick={() => onSetAutoCashout(index, !bet.autoCashout, localAuto)}>
+                                <div className="toggle-thumb" />
+                            </div>
+                            <span>Auto Cash Out</span>
+                        </label>
+                    </div>
+                    <div className="auto-cashout-input">
                         <input
                             type="number"
                             value={localAuto}
@@ -87,35 +122,9 @@ export default function BetPanel({ index, bet, gameState, multiplier, onPlaceBet
                             onChange={e => { setLocalAuto(parseFloat(e.target.value)); onSetAutoCashout(index, true, parseFloat(e.target.value)); }}
                             className="auto-input"
                         />
-                        <span>x</span>
+                        <span className="mult-x">x</span>
                     </div>
-                )}
-            </div>
-
-            {/* Action button */}
-            {bet.isCashedOut ? (
-                <div className="cashed-out-status">
-                    <span className="won-icon">🎉</span>
-                    <span className="win-value">{fmt(bet.amount * bet.cashoutValue, currency)}</span>
-                    <span className="win-mult">at {bet.cashoutValue.toFixed(2)}x</span>
                 </div>
-            ) : isInGame ? (
-                <button onClick={() => onCashOut(index)} className="cashout-btn" disabled={gameState !== 'RUNNING'}>
-                    <span className="cashout-label">CASH OUT</span>
-                    <span className="current-win">{fmt(currentWin, currency)}</span>
-                </button>
-            ) : bet.isQueued ? (
-                <button onClick={() => onCancelBet(index)} className="cancel-btn">
-                    Cancel Next Round
-                </button>
-            ) : (
-                <button
-                    onClick={() => onPlaceBet(index)}
-                    disabled={!canBet}
-                    className="bet-btn"
-                >
-                    {gameState === 'WAITING' ? `BET ${fmt(bet.amount, currency)}` : `BET NEXT ROUND`}
-                </button>
             )}
         </div>
     );

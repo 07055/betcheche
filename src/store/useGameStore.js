@@ -12,17 +12,21 @@ export const useGameStore = create(
 
             // Balance & Currency
             balance: DEFAULT_BALANCE,
+            demoBalance: 3000,
+            isDemoMode: true, // Start in Fun Mode by default for new users
             currency: 'KES',
 
             // Settings
             soundOn: true,
             animationsOn: true,
+            musicOn: true,
 
             // Round history (last 50 results)
             roundHistory: [1.54, 2.10, 1.12, 5.40, 1.20, 1.88, 3.45, 1.01, 7.23, 2.55],
 
             // Personal bet history
             myBets: [],
+            demoBets: [],
 
             // Session stats
             stats: {
@@ -39,13 +43,24 @@ export const useGameStore = create(
                 if (users[username]) {
                     if (users[username].pin !== pin) return { success: false, error: 'Wrong PIN' };
                     const savedBalance = users[username].balance ?? DEFAULT_BALANCE;
-                    set({ user: { username, pin }, isAuthenticated: true, balance: savedBalance });
+                    const savedDemoBalance = users[username].demoBalance ?? 3000;
+                    set({
+                        user: { username, pin },
+                        isAuthenticated: true,
+                        balance: savedBalance,
+                        demoBalance: savedDemoBalance
+                    });
                     return { success: true };
                 }
                 // Register new user
-                users[username] = { pin, balance: DEFAULT_BALANCE };
+                users[username] = { pin, balance: DEFAULT_BALANCE, demoBalance: 3000 };
                 localStorage.setItem('aviator_users', JSON.stringify(users));
-                set({ user: { username, pin }, isAuthenticated: true, balance: DEFAULT_BALANCE });
+                set({
+                    user: { username, pin },
+                    isAuthenticated: true,
+                    balance: DEFAULT_BALANCE,
+                    demoBalance: 3000
+                });
                 return { success: true };
             },
 
@@ -53,12 +68,21 @@ export const useGameStore = create(
                 set({ user: null, isAuthenticated: false });
             },
 
-            updateBalance: (newBalance) => {
-                const { user } = get();
-                set({ balance: newBalance });
+            updateBalance: (newAmount) => {
+                const { user, isDemoMode } = get();
+                if (isDemoMode) {
+                    set({ demoBalance: newAmount });
+                } else {
+                    set({ balance: newAmount });
+                }
+
                 if (user) {
                     const users = JSON.parse(localStorage.getItem('aviator_users') || '{}');
-                    users[user.username] = { ...users[user.username], balance: newBalance };
+                    if (isDemoMode) {
+                        users[user.username] = { ...users[user.username], demoBalance: newAmount };
+                    } else {
+                        users[user.username] = { ...users[user.username], balance: newAmount };
+                    }
                     localStorage.setItem('aviator_users', JSON.stringify(users));
                 }
             },
@@ -70,9 +94,16 @@ export const useGameStore = create(
             },
 
             addMyBet: (betRecord) => {
-                set((state) => ({
-                    myBets: [betRecord, ...state.myBets].slice(0, 100),
-                }));
+                const { isDemoMode } = get();
+                if (isDemoMode) {
+                    set((state) => ({
+                        demoBets: [betRecord, ...state.demoBets].slice(0, 100),
+                    }));
+                } else {
+                    set((state) => ({
+                        myBets: [betRecord, ...state.myBets].slice(0, 100),
+                    }));
+                }
             },
 
             updateStats: (wagered, won, multiplier) => {
@@ -88,11 +119,13 @@ export const useGameStore = create(
             },
 
             toggleSound: () => set((state) => ({ soundOn: !state.soundOn })),
+            toggleMusic: () => set((state) => ({ musicOn: !state.musicOn })),
             toggleAnimations: () => set((state) => ({ animationsOn: !state.animationsOn })),
+            toggleDemoMode: () => set((state) => ({ isDemoMode: !state.isDemoMode })),
             setCurrency: (currency) => set({ currency }),
             logout: () => {
                 localStorage.removeItem('aviator_user');
-                set({ user: null, isAuthenticated: false }); // Keep isAuthenticated: false for consistency
+                set({ user: null, isAuthenticated: false });
             },
 
             // Payments
@@ -102,29 +135,42 @@ export const useGameStore = create(
                 localStorage.setItem('aviator_transactions', JSON.stringify(newTx));
                 return { transactions: newTx };
             }),
-            deposit: (amount) => set((state) => {
-                const newBalance = state.balance + amount;
-                // Update user's balance in localStorage if logged in
-                const { user } = get();
+            deposit: (amount) => {
+                const { user, isDemoMode, balance, demoBalance } = get();
+                const newAmount = (isDemoMode ? demoBalance : balance) + amount;
+
+                if (isDemoMode) {
+                    set({ demoBalance: newAmount });
+                } else {
+                    set({ balance: newAmount });
+                }
+
                 if (user) {
                     const users = JSON.parse(localStorage.getItem('aviator_users') || '{}');
-                    users[user.username] = { ...users[user.username], balance: newBalance };
+                    const field = isDemoMode ? 'demoBalance' : 'balance';
+                    users[user.username] = { ...users[user.username], [field]: newAmount };
                     localStorage.setItem('aviator_users', JSON.stringify(users));
                 }
-                return { balance: newBalance };
-            }),
-            withdraw: (amount) => set((state) => {
-                if (state.balance < amount) return {};
-                const newBalance = state.balance - amount;
-                // Update user's balance in localStorage if logged in
-                const { user } = get();
+            },
+            withdraw: (amount) => {
+                const { user, isDemoMode, balance, demoBalance } = get();
+                const current = isDemoMode ? demoBalance : balance;
+                if (current < amount) return;
+
+                const newAmount = current - amount;
+                if (isDemoMode) {
+                    set({ demoBalance: newAmount });
+                } else {
+                    set({ balance: newAmount });
+                }
+
                 if (user) {
                     const users = JSON.parse(localStorage.getItem('aviator_users') || '{}');
-                    users[user.username] = { ...users[user.username], balance: newBalance };
+                    const field = isDemoMode ? 'demoBalance' : 'balance';
+                    users[user.username] = { ...users[user.username], [field]: newAmount };
                     localStorage.setItem('aviator_users', JSON.stringify(users));
                 }
-                return { balance: newBalance };
-            }),
+            },
         }),
         {
             name: 'aviator-game-store',
@@ -132,10 +178,15 @@ export const useGameStore = create(
                 user: state.user,
                 isAuthenticated: state.isAuthenticated,
                 balance: state.balance,
+                demoBalance: state.demoBalance,
+                isDemoMode: state.isDemoMode,
                 currency: state.currency,
                 soundOn: state.soundOn,
+                musicOn: state.musicOn,
+                animationsOn: state.animationsOn,
                 roundHistory: state.roundHistory,
                 myBets: state.myBets,
+                demoBets: state.demoBets,
                 stats: state.stats,
             }),
         }

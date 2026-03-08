@@ -87,6 +87,21 @@ export default function Sidebar({ liveBets }) {
                         ))
                 )}
             </div>
+            <div className="sidebar-footer">
+                <div className="footer-badges">
+                    <div className="badge provably-fair">
+                        <span className="dot"></span>
+                        Provably Fair
+                    </div>
+                </div>
+                <div className="footer-partners">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/UFC_Logo.svg/1024px-UFC_Logo.svg.png" alt="UFC" className="partner-logo" />
+                    <div className="powered-by">
+                        <span>Powered by</span>
+                        <span className="spribe-logo">SPRIBE</span>
+                    </div>
+                </div>
+            </div>
         </aside>
     );
 }

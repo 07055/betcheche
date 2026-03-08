@@ -27,17 +27,28 @@ export default function GamePage() {
 
     const user = useGameStore((s) => s.user);
     const balance = useGameStore((s) => s.balance);
+    const demoBalance = useGameStore((s) => s.demoBalance);
+    const isDemoMode = useGameStore((s) => s.isDemoMode);
+    const toggleDemoMode = useGameStore((s) => s.toggleDemoMode);
     const currency = useGameStore((s) => s.currency);
     const roundHistory = useGameStore((s) => s.roundHistory);
-    const soundOn = useGameStore((s) => s.soundOn);
-    const toggleSound = useGameStore((s) => s.toggleSound);
-    const toggleCurrency = useGameStore((s) => s.setCurrency);
+
+    const settings = {
+        sound: useGameStore((s) => s.soundOn),
+        music: useGameStore((s) => s.musicOn),
+        animations: useGameStore((s) => s.animationsOn),
+        toggleSound: useGameStore((s) => s.toggleSound),
+        toggleMusic: useGameStore((s) => s.toggleMusic),
+        toggleAnimations: useGameStore((s) => s.toggleAnimations),
+    };
+
     const logout = useGameStore((s) => s.logout);
 
     const sounds = useSounds();
     const [showChat, setShowChat] = useState(false);
     const [showStats, setShowStats] = useState(false);
     const [showPayment, setShowPayment] = useState(false);
+    const [showMenu, setShowMenu] = useState(false);
     const [windowSize, setWindowSize] = useState({ w: window.innerWidth, h: window.innerHeight });
 
     // Register sounds once using a ref to avoid re-render loops
@@ -74,8 +85,10 @@ export default function GamePage() {
     const planeY = 88 - (progress * progress * 80);
 
     const fmt = (n) => currency === 'KES'
-        ? `KES ${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
+        ? `${isDemoMode ? '' : 'KES '}${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`
         : `$${n.toFixed(2)}`;
+
+    const currentBalance = isDemoMode ? demoBalance : balance;
 
     return (
         <div className="game-page">
@@ -107,14 +120,16 @@ export default function GamePage() {
                 </div>
 
                 <div className="header-right">
-                    <div className="balance-pill" onClick={() => setShowPayment(true)}>
+                    <div className={`balance-pill ${isDemoMode ? 'demo' : ''}`} onClick={() => !isDemoMode && setShowPayment(true)}>
                         <span className="balance-value">
-                            {currency === 'KES' ? 'KES' : '$'}{balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {currency === 'KES' ? (isDemoMode ? '' : 'KES') : '$'}
+                            {currentBalance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                            {isDemoMode && ' USD'}
                         </span>
-                        <button className="deposit-btn">+</button>
+                        {!isDemoMode && <button className="deposit-btn">+</button>}
                     </div>
-                    <button className="settings-btn" alt="Menu" onClick={() => setShowStats(true)}>☰</button>
-                    <div className="user-avatar-small">
+                    <button className="settings-btn" onClick={() => setShowMenu(true)}>☰</button>
+                    <div className="user-avatar-small" onClick={() => setShowMenu(true)}>
                         {user?.username?.[0]?.toUpperCase() || 'U'}
                     </div>
                 </div>
@@ -149,7 +164,7 @@ export default function GamePage() {
                                 <span className="dot"></span>
                                 Provably Fair
                             </div>
-                            <div className="game-mode-badge">FUN MODE</div>
+                            {isDemoMode && <div className="game-mode-badge show">FUN MODE</div>}
                         </div>
 
                         <GameCanvas multiplier={multiplier} gameState={gameState} />
@@ -262,6 +277,91 @@ export default function GamePage() {
 
             {/* Stats Modal */}
             {showStats && <StatsModal history={roundHistory} onClose={() => setShowStats(false)} />}
+
+            {/* Side Menu */}
+            <AnimatePresence>
+                {showMenu && (
+                    <>
+                        <motion.div
+                            className="menu-overlay"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            onClick={() => setShowMenu(false)}
+                        />
+                        <motion.div
+                            className="side-menu"
+                            initial={{ x: '100%' }}
+                            animate={{ x: 0 }}
+                            exit={{ x: '100%' }}
+                            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                        >
+                            <div className="menu-header">
+                                <div className="menu-user-info">
+                                    <div className="menu-avatar">
+                                        <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${user?.username || 'user'}`} alt="avatar" />
+                                    </div>
+                                    <div className="menu-user-details">
+                                        <h3>{isDemoMode ? `${user?.username || 'Player'}_${Math.floor(Math.random() * 90000 + 10000)}` : user?.username}</h3>
+                                        <p>{isDemoMode ? 'Demo Account' : 'Real Account'}</p>
+                                    </div>
+                                </div>
+                                <button className="close-menu" onClick={() => setShowMenu(false)}>✕</button>
+                            </div>
+
+                            <div className="menu-section">
+                                <div className="menu-toggle-row">
+                                    <div className="toggle-info">
+                                        <span className="icon">🔊</span>
+                                        <span>Sound</span>
+                                    </div>
+                                    <div className={`menu-switch ${settings.sound ? 'on' : ''}`} onClick={settings.toggleSound}>
+                                        <div className="switch-thumb" />
+                                    </div>
+                                </div>
+                                <div className="menu-toggle-row">
+                                    <div className="toggle-info">
+                                        <span className="icon">🎵</span>
+                                        <span>Music</span>
+                                    </div>
+                                    <div className={`menu-switch ${settings.music ? 'on' : ''}`} onClick={settings.toggleMusic}>
+                                        <div className="switch-thumb" />
+                                    </div>
+                                </div>
+                                <div className="menu-toggle-row">
+                                    <div className="toggle-info">
+                                        <span className="icon">✨</span>
+                                        <span>Animation</span>
+                                    </div>
+                                    <div className={`menu-switch ${settings.animations ? 'on' : ''}`} onClick={settings.toggleAnimations}>
+                                        <div className="switch-thumb" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="menu-section">
+                                <button className={`mode-toggle-btn ${isDemoMode ? 'demo' : 'real'}`} onClick={toggleDemoMode}>
+                                    Switch to {isDemoMode ? 'Real' : 'Demo'} Account
+                                </button>
+                            </div>
+
+                            <div className="menu-list">
+                                <button className="menu-item"><span className="icon">⭐</span> Free Bets</button>
+                                <button className="menu-item" onClick={() => { setShowStats(true); setShowMenu(false); }}><span className="icon">📜</span> My Bet History</button>
+                                <button className="menu-item"><span className="icon">🛡️</span> Provably Fair Settings</button>
+                                <button className="menu-item"><span className="icon">❓</span> How To Play</button>
+                            </div>
+
+                            <div className="menu-footer">
+                                <button className="logout-btn" onClick={() => { logout(); navigate('/'); }}>
+                                    <span className="icon">🚪</span> Sign Out
+                                </button>
+                                <p className="version-info">Version 1.2.0</p>
+                            </div>
+                        </motion.div>
+                    </>
+                )}
+            </AnimatePresence>
         </div>
     );
 }

@@ -148,9 +148,10 @@ export default function GameCanvas({ multiplier, gameState }) {
                 ctx.lineTo(lastPt.x, H);
                 ctx.lineTo(points[0].x, H);
                 ctx.closePath();
-                const grad = ctx.createLinearGradient(0, 0, 0, H);
-                grad.addColorStop(0, 'rgba(225,29,72,0.28)');
-                grad.addColorStop(1, 'rgba(225,29,72,0.02)');
+                const grad = ctx.createLinearGradient(0, points[0].y - 50, 0, H);
+                grad.addColorStop(0, 'rgba(225,29,72,0.4)');
+                grad.addColorStop(0.3, 'rgba(225,29,72,0.1)');
+                grad.addColorStop(1, 'rgba(0,0,0,0)');
                 ctx.fillStyle = grad;
                 ctx.fill();
 
