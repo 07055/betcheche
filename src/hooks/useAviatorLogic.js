@@ -236,12 +236,14 @@ export const useAviatorLogic = () => {
   }, [updateBalance]);
 
   const setBetAmount = useCallback((index, amount) => {
+    const min = currency === 'KES' ? 2 : 0.1;
+    const max = currency === 'KES' ? 30000 : 100;
     setBets(prev => {
       const next = [...prev];
-      next[index] = { ...next[index], amount: Math.max(10, Math.round(amount)) };
+      next[index] = { ...next[index], amount: Math.min(max, Math.max(min, amount)) };
       return next;
     });
-  }, []);
+  }, [currency]);
 
   const setAutoCashout = useCallback((index, enabled, atValue) => {
     setBets(prev => {

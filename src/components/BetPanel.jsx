@@ -21,7 +21,7 @@ export default function BetPanel({ index, bet, gameState, multiplier, onPlaceBet
     const isInGame = bet.isActive && !bet.isCashedOut;
     const currentWin = bet.amount * multiplier;
 
-    const PRESETS = currency === 'KES' ? [50, 100, 500, 1000] : [1, 5, 10, 50];
+    const PRESETS = currency === 'KES' ? [2, 10, 50, 100] : [0.1, 1, 5, 10];
 
     // Pulse animation value
     const [pulse, setPulse] = useState(false);

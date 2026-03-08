@@ -97,7 +97,7 @@ export default function PaymentModal({ onClose }) {
                     </div>
 
                     <div className="amount-presets">
-                        {[50, 100, 500, 1000].map(val => (
+                        {[10, 50, 100, 500].map(val => (
                             <button key={val} onClick={() => setAmount(val)}>
                                 {currency === 'KES' ? 'K' : '$'}{val}
                             </button>
