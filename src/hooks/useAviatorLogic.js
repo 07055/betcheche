@@ -144,18 +144,21 @@ export const useAviatorLogic = () => {
 
         cancelAnimationFrame(gameLoopRef.current);
 
-        let timeLeft = ROUND_WAIT_TIME;
-        setNextRoundCountdown(timeLeft);
-        setGameState('WAITING');
-        gameStateRef.current = 'WAITING';
-        const interval = setInterval(() => {
-          timeLeft -= 1;
+        // Wait 2 seconds in CRASHED state so user sees "FLEW AWAY!"
+        setTimeout(() => {
+          let timeLeft = ROUND_WAIT_TIME;
           setNextRoundCountdown(timeLeft);
-          if (timeLeft <= 0) {
-            clearInterval(interval);
-            startNewRound();
-          }
-        }, 1000);
+          setGameState('WAITING');
+          gameStateRef.current = 'WAITING';
+          const interval = setInterval(() => {
+            timeLeft -= 1;
+            setNextRoundCountdown(timeLeft);
+            if (timeLeft <= 0) {
+              clearInterval(interval);
+              startNewRound();
+            }
+          }, 1000);
+        }, 2000);
       } else {
         setMultiplier(nextMultiplier);
         multiplierRef.current = nextMultiplier;
