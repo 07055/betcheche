@@ -105,7 +105,7 @@ export default function GamePage() {
             <header className="game-header">
                 <div className="header-left">
                     <div className="logo-main">
-                        <PlaneSVG size={28} />
+                        <PlaneSVG size={40} />
                         <span className="aviator-logo-text" style={{ fontSize: '1.5rem', marginLeft: '8px' }}>Aviator</span>
                     </div>
                 </div>
@@ -189,7 +189,7 @@ export default function GamePage() {
                                         transition: { duration: 0.6, ease: "easeIn" }
                                     }}
                                 >
-                                    <PlaneSVG size={64} />
+                                    <PlaneSVG size={110} />
                                 </motion.div>
                             )}
                         </AnimatePresence>

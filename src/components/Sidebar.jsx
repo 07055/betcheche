@@ -98,7 +98,13 @@ export default function Sidebar({ liveBets }) {
                     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/UFC_Logo.svg/1024px-UFC_Logo.svg.png" alt="UFC" className="partner-logo" />
                     <div className="powered-by">
                         <span>Powered by</span>
-                        <span className="spribe-logo">SPRIBE</span>
+                        <div className="spribe-logo">
+                            <svg viewBox="0 0 100 24" height="18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M10 4 L14 4 L14 20 L10 20 Z" fill="#e11d48" />
+                                <path d="M16 4 H26 V8 H16 V12 H24 V16 H16 V20 H10 V4 Z" fill="white" opacity="0.8" />
+                                <text x="18" y="17" fill="white" fontSize="14" fontWeight="900" style={{ letterSpacing: '1px', fontFamily: 'Inter, sans-serif' }}>SPRIBE</text>
+                            </svg>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -183,6 +183,10 @@
     }
 }
 
+.spribe-logo {
+    margin-top: 2px;
+}
+
 .empty-state {
     padding: 30px 16px;
     text-align: center;
